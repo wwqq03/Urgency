@@ -1,0 +1,32 @@
+<cases>
+	<case urgency="10">
+		<context>
+			<predicate>has_heart_beat</predicate>
+			<object>low</object>
+		</context>
+	</case>
+	<case urgency="1">
+		<context>
+			<predicate>has_diagnosis</predicate>
+			<object>diabetes</object>
+		</context>
+		<context>
+			<predicate>has_location</predicate>
+			<object>patient_room</object>
+		</context>
+	</case>
+	<case urgency="5">
+		<context>
+			<predicate>has_diagnosis</predicate>
+			<object>diabetes</object>
+		</context>
+		<context>
+			<predicate>has_location</predicate>
+			<object>patient_room</object>
+		</context>
+		<context>
+			<predicate>has_blood_pressure</predicate>
+			<object>high</object>
+		</context>
+	</case>
+</cases>
