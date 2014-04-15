@@ -5,48 +5,45 @@ import java.util.Iterator;
 
 import com.thesis.urgency.common.Case;
 import com.thesis.urgency.common.ContextItem;
-import com.thesis.urgency.common.PatientCase;
+import com.thesis.urgency.common.DualPatientCase;
 import com.thesis.urgency.contextGathering.ContextCollector;
-import com.thesis.urgency.persistentStore.PatientCasesPersistentStore;
+import com.thesis.urgency.persistentStore.DualPatientCasesPersistentStore;
+import com.thesis.urgency.persistentStore.MyCBRPatientCasesPersistentStore;
 import com.thesis.urgency.persistentStore.PersistentStore;
 
 public class Analyzer {
 	
+	public static final int MYCBR = 1;
+	public static final int DUAL = 2;
+	
 	private PersistentStore patientCasesPersistentStore;
 	private ContextCollector collector;
+	private int mode;
 	
-	public Analyzer() {
-		patientCasesPersistentStore = new PatientCasesPersistentStore();
+	public Analyzer(int mode) {
+		this.mode = mode;
+		if(mode == Analyzer.MYCBR) {
+			patientCasesPersistentStore = new MyCBRPatientCasesPersistentStore();
+		} else if(mode == DUAL) {
+			patientCasesPersistentStore = new DualPatientCasesPersistentStore();
+		}
 		collector = new ContextCollector();
 	}
 	
 	public String getUrgency(String subject) {
-		String urgency = null;
-		
-		ArrayList<Case> patientCases = patientCasesPersistentStore.getCases();
+		if(patientCasesPersistentStore == null) {
+			return "0";
+		}
 		
 		ArrayList<ContextItem> subjectContext = collector.getContext(subject);
-		PatientCase subjectPatientCase = new PatientCase();
-		subjectPatientCase.setContext(subjectContext);
-		
-		Case chosenCase = null;
-		int chosenUrgency = 0;
-		Iterator<Case> i = patientCases.iterator();
-		while(i.hasNext()) {
-			Case patientCase = i.next();
-			if(patientCase.isMatch(subjectContext)) {
-				PatientCase currentPatientCase = (PatientCase)patientCase;
-				if(Integer.parseInt(currentPatientCase.getUrgency()) > chosenUrgency) {
-					chosenUrgency = Integer.parseInt(currentPatientCase.getUrgency());
-					chosenCase = currentPatientCase;
-				}
-			}
+		Case chosenCase = patientCasesPersistentStore.getMostSimilarCase(subjectContext);
+		if(chosenCase == null) {
+			return "0";
 		}
 		
 		storeChosenCase(chosenCase);
 		
-		urgency = String.valueOf(chosenUrgency);
-		return urgency;
+		return chosenCase.getUrgency();
 	}
 
 	private void storeChosenCase(Case chosenCase) {

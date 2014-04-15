@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<Project name="Urgency" author="" >
+<exp obj="PatientCases" type="Concept" >
+  <desc>
+          </desc>
+</exp>
+<exp obj="has_blood_pressure" c="PatientCases" type="AttributeDesc" >
+  <desc>
+      </desc>
+</exp>
+<exp obj="PatientCases #2" c="PatientCases" type="Instance" >
+  <desc>
+  </desc>
+</exp>
+<exp obj="Urgency #0" c="Urgency" type="Instance" >
+  <desc>
+  </desc>
+</exp>
+</Project>

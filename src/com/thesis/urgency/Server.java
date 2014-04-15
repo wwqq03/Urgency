@@ -12,8 +12,8 @@ public class Server {
 	}
 	
 	public void go() {
-		Analyzer analyzer = new Analyzer();
-		System.out.println(analyzer.getUrgency("Anna"));
+		Analyzer analyzer = new Analyzer(Analyzer.MYCBR);
+		System.out.println("The urgency is: " + analyzer.getUrgency("Mike"));
 	}
 
 }

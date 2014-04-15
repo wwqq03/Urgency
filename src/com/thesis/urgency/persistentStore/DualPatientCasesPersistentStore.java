@@ -16,17 +16,17 @@ import org.dom4j.io.XMLWriter;
 
 import com.thesis.urgency.common.Case;
 import com.thesis.urgency.common.ContextItem;
-import com.thesis.urgency.common.PatientCase;
+import com.thesis.urgency.common.DualPatientCase;
 
-public class PatientCasesPersistentStore implements PersistentStore {
+public class DualPatientCasesPersistentStore implements PersistentStore {
 	
 	private static final String PATIENTCASES = "patient cases.xml";
-	private static ArrayList<Case> patientCases;
+	private static ArrayList<DualPatientCase> patientCases;
 	
 	@Override
-	public ArrayList<Case> getCases() {
+	public Case getMostSimilarCase(ArrayList<ContextItem> subjectContext) {
 		if(patientCases == null) {
-			patientCases = new ArrayList<Case>();
+			patientCases = new ArrayList<DualPatientCase>();
 			try {
 				
 				SAXReader reader = new SAXReader();
@@ -65,7 +65,7 @@ public class PatientCasesPersistentStore implements PersistentStore {
 					if(urgency != null
 							&& !urgency.isEmpty()
 							&& !contextItems.isEmpty()) {
-						PatientCase newPatientCase = new PatientCase();
+						DualPatientCase newPatientCase = new DualPatientCase();
 						newPatientCase.setContext(contextItems);
 						newPatientCase.setUrgency(urgency);
 						patientCases.add(newPatientCase);
@@ -77,22 +77,37 @@ public class PatientCasesPersistentStore implements PersistentStore {
 			}
 		}
 		
-		ArrayList<Case> result = new ArrayList<Case>(patientCases);
+		DualPatientCase chosenCase = null;
+		int chosenUrgency = 0;
+		Iterator<DualPatientCase> i = patientCases.iterator();
+		while(i.hasNext()) {
+			DualPatientCase patientCase = i.next();
+			if(patientCase.isMatch(subjectContext)) {
+				DualPatientCase currentPatientCase = (DualPatientCase)patientCase;
+				if(Integer.parseInt(currentPatientCase.getUrgency()) > chosenUrgency) {
+					chosenUrgency = Integer.parseInt(currentPatientCase.getUrgency());
+					chosenCase = currentPatientCase;
+				}
+			}
+		}
+		DualPatientCase result = new DualPatientCase();
+		result.setContext(new ArrayList<ContextItem>(chosenCase.getContext()));
+		result.setUrgency(chosenCase.getUrgency());
 		return result;
 	}
 
 	@Override
 	public void addCase(Case newCase) {
 		// TODO Auto-generated method stub
-		PatientCase newPatientCase;
+		DualPatientCase newPatientCase;
 		if(patientCases == null) {
 			return;
 		} else if(newCase == null) {
 			return;
-		} else if(!(newCase instanceof PatientCase)) {
+		} else if(!(newCase instanceof DualPatientCase)) {
 			return;
 		} else {
-			newPatientCase = (PatientCase) newCase;
+			newPatientCase = (DualPatientCase) newCase;
 		}
 		
 		if(newPatientCase.getUrgency() == null || newPatientCase.getContext() == null || newPatientCase.getContext().isEmpty()) {
@@ -119,7 +134,7 @@ public class PatientCasesPersistentStore implements PersistentStore {
 				objectElement.setText(item.getObject());
 			}
 			
-			patientCases.add(newCase);
+			patientCases.add((DualPatientCase)newCase);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
