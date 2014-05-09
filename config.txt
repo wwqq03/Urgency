@@ -1,0 +1,12 @@
+urgency_port=7980
+feedback_port=7981
+context_gathering_ip=127.0.0.1
+context_gathering_port=7979
+db_url=jdbc:mysql://localhost/context
+db_user=root
+db_password=
+db_table_context_temp=context_temp
+myCBR_path=/Users/which/Documents/workspace/Urgency/
+myCBR_project=Urgency.prj
+myCBR_concept=PatientCases
+myCBR_casebase=casebase

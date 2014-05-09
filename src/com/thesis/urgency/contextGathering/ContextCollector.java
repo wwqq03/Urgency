@@ -5,6 +5,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
+
+import com.thesis.urgency.Server;
 import com.thesis.urgency.common.ContextItem;
 
 public class ContextCollector {
@@ -13,7 +15,7 @@ public class ContextCollector {
 	public ArrayList<ContextItem> getContext(String subject) {
 		
 		try{
-			socket = new Socket("127.0.0.1", 7979);
+			socket = new Socket(Server.CONTEXT_GATHERING_IP, Integer.valueOf(Server.CONTEXT_GATHERING_PORT));
 			
 			PrintWriter writer = new PrintWriter(socket.getOutputStream());
 			InputStreamReader streamReader = new InputStreamReader(socket.getInputStream());

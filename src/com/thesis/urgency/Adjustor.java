@@ -1,7 +1,6 @@
 package com.thesis.urgency;
 
 import java.io.BufferedReader;
-import java.io.Console;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -11,24 +10,23 @@ import java.util.concurrent.BlockingQueue;
 import com.thesis.urgency.DAO.TempContextDAO;
 import com.thesis.urgency.common.Case;
 import com.thesis.urgency.common.ContextItem;
-import com.thesis.urgency.contextGathering.ContextCollector;
-import com.thesis.urgency.nurcecall.UrgencyRequest;
-import com.thesis.urgency.nurcecall.UrgencyResponse;
+import com.thesis.urgency.common.DualPatientCase;
+import com.thesis.urgency.common.MyCBRPatientCase;
+import com.thesis.urgency.nurcecall.FeedbackRequest;
+import com.thesis.urgency.nurcecall.FeedbackResponse;
 import com.thesis.urgency.persistentStore.DualPatientCasesPersistentStore;
 import com.thesis.urgency.persistentStore.MyCBRPatientCasesPersistentStore;
 import com.thesis.urgency.persistentStore.PersistentStore;
 
-public class Analyzer implements Runnable{
-	
-	private PersistentStore patientCasesPersistentStore;
-	private ContextCollector collector;
-	private TempContextDAO tempContextDAO = new TempContextDAO();
+public class Adjustor implements Runnable{
 	private BlockingQueue<Socket> queue;
+	private PersistentStore patientCasesPersistentStore;
+	private TempContextDAO tempContextDAO;
 	
-	public Analyzer(PersistentStore persistentStore, BlockingQueue<Socket> queue) {
-		this.queue = queue;
+	public Adjustor(PersistentStore persistentStore, BlockingQueue<Socket> queue) {
 		patientCasesPersistentStore = persistentStore;
-		collector = new ContextCollector();
+		this.queue = queue;
+		tempContextDAO = new TempContextDAO();
 	}
 	
 	public void run() {
@@ -36,11 +34,11 @@ public class Analyzer implements Runnable{
 			try {
 				Socket clientSocket = queue.take();
 				String message = getRawMessage(clientSocket);
-				UrgencyResponse response = processMessage(message);
+				FeedbackResponse response = processMessage(message);
 				
-				if(response == null){
-					response = new UrgencyResponse("400");
-					response.setMessage("Bad request!");
+				if(response == null) {
+					response = new FeedbackResponse("400");
+					response.setMessage("Bad request");
 				}
 				
 				sendResponse(clientSocket, response);
@@ -51,8 +49,8 @@ public class Analyzer implements Runnable{
 			}
 		}
 	}
-	
-	private void sendResponse(Socket clientSocket, UrgencyResponse response) {
+
+	private void sendResponse(Socket clientSocket, FeedbackResponse response) {
 		// TODO Auto-generated method stub
 		try {
 			PrintWriter writer = new PrintWriter(clientSocket.getOutputStream());
@@ -64,21 +62,38 @@ public class Analyzer implements Runnable{
 		}
 	}
 
-	private UrgencyResponse processMessage(String message) {
+	private FeedbackResponse processMessage(String message) {
 		// TODO Auto-generated method stub
 		if(message == null || message.isEmpty()) {
 			return null;
 		}
 		
-		UrgencyRequest request = new UrgencyRequest(message);
-		String patient = request.getPatient();
+		FeedbackRequest request = new FeedbackRequest(message);
+		String urgency = request.getUrgency();
 		String callId = request.getCallId();
 		
-		String urgency = getUrgency(patient, callId);
-		UrgencyResponse response = new UrgencyResponse("200");
-		response.setUrgency(urgency);
+		storeNewCase(callId, urgency);
 		
+		FeedbackResponse response = new FeedbackResponse("200");
 		return response;
+	}
+
+	private void storeNewCase(String callId, String urgency) {
+		// TODO Auto-generated method stub
+		ArrayList<ContextItem> context = tempContextDAO.read(callId);
+		Case newCase;
+		if(patientCasesPersistentStore instanceof DualPatientCasesPersistentStore) {
+			newCase = new DualPatientCase();
+			newCase.setUrgency(urgency);
+			newCase.setContext(context);
+		} else if(patientCasesPersistentStore instanceof MyCBRPatientCasesPersistentStore) {
+			newCase = new MyCBRPatientCase();
+			newCase.setUrgency(urgency);
+			newCase.setContext(context);
+		} else {
+			return;
+		}
+		patientCasesPersistentStore.addCase(newCase);
 	}
 
 	private String getRawMessage(Socket clientSocket) {
@@ -92,26 +107,5 @@ public class Analyzer implements Runnable{
 			e.printStackTrace();
 		}
 		return null;
-	}
-
-	public String getUrgency(String subject, String callId) {
-		if(patientCasesPersistentStore == null) {
-			return "0";
-		}
-		
-		ArrayList<ContextItem> subjectContext = collector.getContext(subject);
-		Case chosenCase = patientCasesPersistentStore.getMostSimilarCase(subjectContext);
-		if(chosenCase == null) {
-			return "0";
-		}
-		
-		storeNewContext(callId, subjectContext);
-		
-		return chosenCase.getUrgency();
-	}
-
-	private void storeNewContext(String callId, ArrayList<ContextItem> newContext) {
-		// TODO Auto-generated method stub
-		tempContextDAO.store(callId, newContext);
 	}
 }

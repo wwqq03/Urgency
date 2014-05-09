@@ -21,7 +21,7 @@ public class MyCBRPatientCase implements Case {
 		return context;
 	}
 	
-	public void setContext(ArrayList<ContextItem> context) {
+	public void setContext(ArrayList context) {
 		this.context = context;
 	}
 }

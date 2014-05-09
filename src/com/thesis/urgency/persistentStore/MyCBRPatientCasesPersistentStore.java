@@ -79,9 +79,9 @@ public class MyCBRPatientCasesPersistentStore implements PersistentStore {
 		while(i.hasNext()) {
 			String attributeName = (String)i.next();
 			try {
-				if(attributeName.equals("urgency")) {
-					continue;
-				}
+//				if(attributeName.equals("urgency")) {
+//					continue;
+//				}
 				if(context.get(attributeName) == null) {
 					continue;
 				}
@@ -116,7 +116,16 @@ public class MyCBRPatientCasesPersistentStore implements PersistentStore {
 		}
 		Instance instance = new Instance(concept, concept.getName() + " #" + concept.getAllInstances().size());
 		setAttributesToInstance(instance, contextToHashMap(((MyCBRPatientCase)newCase).getContext()));
-		concept.addInstance(instance);
+		
+		try {
+			AttributeDesc desc = concept.getAttributeDesc("urgency");
+			instance.addAttribute(desc, newCase.getUrgency());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		//concept.addInstance(instance);
+		casebase.addCase(instance);
 		project.save();
 	}
 }

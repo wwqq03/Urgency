@@ -6,8 +6,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.naming.Context;
-
 import org.dom4j.Attribute;
 import org.dom4j.Document;
 import org.dom4j.Element;
@@ -23,8 +21,7 @@ public class DualPatientCasesPersistentStore implements PersistentStore {
 	private static final String PATIENTCASES = "patient cases.xml";
 	private static ArrayList<DualPatientCase> patientCases;
 	
-	@Override
-	public Case getMostSimilarCase(ArrayList<ContextItem> subjectContext) {
+	public DualPatientCasesPersistentStore() {
 		if(patientCases == null) {
 			patientCases = new ArrayList<DualPatientCase>();
 			try {
@@ -76,7 +73,10 @@ public class DualPatientCasesPersistentStore implements PersistentStore {
 				e.printStackTrace();
 			}
 		}
-		
+	}
+	
+	@Override
+	public Case getMostSimilarCase(ArrayList<ContextItem> subjectContext) {
 		DualPatientCase chosenCase = null;
 		int chosenUrgency = 0;
 		Iterator<DualPatientCase> i = patientCases.iterator();
@@ -124,7 +124,7 @@ public class DualPatientCasesPersistentStore implements PersistentStore {
 			Iterator<ContextItem> i = newPatientCase.getContext().iterator();
 			while(i.hasNext()) {
 				ContextItem item = i.next();
-				if(item.getSubject() == null || item.getObject() == null) {
+				if(item.getPredicate() == null || item.getObject() == null) {
 					continue;
 				}
 				Element contextElement = newCaseElement.addElement("context");
@@ -135,6 +135,10 @@ public class DualPatientCasesPersistentStore implements PersistentStore {
 			}
 			
 			patientCases.add((DualPatientCase)newCase);
+			
+			FileWriter fw = new FileWriter(new File(PATIENTCASES));
+			fw.write(casesElement.asXML());
+			fw.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

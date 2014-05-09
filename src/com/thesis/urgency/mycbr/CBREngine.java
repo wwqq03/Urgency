@@ -1,13 +1,15 @@
 package com.thesis.urgency.mycbr;
 
+import com.thesis.urgency.Server;
+
 import de.dfki.mycbr.core.Project;
 
 public class CBREngine {
 	
-	private static final String data_path = "/Users/which/Documents/workspace/Urgency/";
-	private static final String projectName = "Urgency.prj";
-	private static final String conceptName = "PatientCases";
-	private static final String casebase = "casebase";
+	private static final String data_path = Server.MYCBR_PATH;
+	private static final String projectName = Server.MYCBR_PROJECT;
+	private static final String conceptName = Server.MYCBR_CONCEPT;
+	private static final String casebase = Server.MYCBR_CASEBASE;
 	
 	// Getter for the Project meta data
 	public static String getCaseBase() {
